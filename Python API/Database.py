@@ -26,11 +26,9 @@ class Database:
                 host=self.host,
                 database=self.database_name
             )
-            print(connection)
             return connection
                 
         except Exception as error:
-            print(error)
             self.logger.debug(error)
         
     def create_tables(self):
@@ -102,7 +100,6 @@ class Database:
             connection.close()
             
         except Exception as error:
-            print(error)
             self.logger.debug(error)
             
 if __name__ == "__main__":

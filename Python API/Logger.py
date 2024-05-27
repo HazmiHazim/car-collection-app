@@ -8,6 +8,7 @@ class Logger:
             encoding="utf-8",
             filename=r"F:\Others\Car Collection Project\Python API\app.log",
             datefmt="%d/%m/%Y %H:%M:%S",
+            level=logging.DEBUG
         )
         self.logger = logging.getLogger()
         
