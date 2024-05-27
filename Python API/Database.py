@@ -18,6 +18,21 @@ class Database:
         # Initialize table as dictionary
         self.tables = {}
         
+    def db_connection(self):
+        try:
+            connection = mysql.connector.connect(
+                user=self.user,
+                password=self.password,
+                host=self.host,
+                database=self.database_name
+            )
+            print(connection)
+            return connection
+                
+        except Exception as error:
+            print(error)
+            self.logger.debug(error)
+        
     def create_tables(self):
         try:
             connection = self.db_connection()
@@ -89,23 +104,7 @@ class Database:
         except Exception as error:
             print(error)
             self.logger.debug(error)
-        
-    def db_connection(self):
-        try:
-            connection = mysql.connector.connect(
-                user=self.user,
-                password=self.password,
-                host=self.host,
-                database=self.database_name
-            )
-            print(connection)
-            return connection
-                
-        except Exception as error:
-            print(error)
-            self.logger.debug(error)
             
-# if __name__ == "__main__":
-#     db_instance = Database()
-#     db_instance.db_connection()
-#     db_instance.create_tables()
+if __name__ == "__main__":
+    db_instance = Database()
+    db_instance.create_tables()
