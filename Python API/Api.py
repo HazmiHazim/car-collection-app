@@ -39,7 +39,6 @@ class Api:
             )
             data = (car_name, car_model, car_description, brand_id, category_id, created_at, updated_at)
             cursor.execute(query, data)
-            
             # Make sure data is committed to the database
             connection.commit()
             
@@ -52,11 +51,35 @@ class Api:
             cursor.close()
             connection.close()
             
+    def retrieve_all_cars(self):
+        try:
+            if request.method != "GET":
+                return "Method Not Allowed", 405
+            
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            query = ("SELECT * FROM cars")
+            cursor.execute(query)
+            data = cursor.fetchall()
+            
+            return data, 200
+        
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            cursor.close()
+            connection.close()
+            
             
 api_instance = Api()
 @api_instance.app.route("/api/create_car", methods=["POST"])
 def api_create_car():
     return api_instance.create_car()
+
+@api_instance.app.route("/api/all_cars", methods=["GET"])
+def api_retrieve_all_cars():
+    return api_instance.retrieve_all_cars()
             
 if __name__ == "__main__":
     api_instance.app.run(host="0.0.0.0", port=5000, debug=True)
