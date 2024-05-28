@@ -163,7 +163,7 @@ class Api:
             
             # Return error message if id does not exists
             if not cursor.execute("SELECT id FROM cars WHERE id = %s", (id,)):
-                return f"Update failed. Car for id = {id} not found."
+                return f"Update failed. Car for id = {id} not found.", 404
             
             # Build the SET clause dynamically
             set_clause = ", ".join(f"{key} = %s" for key in update_fields.keys())
@@ -178,6 +178,33 @@ class Api:
             
         except Exception as error:
             self.logger.debug(error)
+            
+        finally:
+            cursor.close()
+            connection.close()
+            
+    def delete_specific_car(self, id):
+        try:
+            if request.method != "DELETE":
+                return "Method Not Allowed", 405
+            
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            query = "DELETE FROM cars WHERE id = %s"
+            cursor.execute(query, (id,))
+            
+            if cursor.rowcount > 0:
+                connection.commit()
+                return "Deleted successfully.", 200
+            else:
+                return f"Delete failed. Car for id = {id} not found", 404
+            
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            cursor.close()
+            connection.close()
             
     def create_brand(self):
         try:
@@ -291,6 +318,10 @@ def api_retrieve_specific_car(id):
 @api_instance.app.route("/api/update_car/<id>", methods=["PUT", "POST"])
 def api_update_specific_car(id):
     return api_instance.update_specific_car(id)
+
+@api_instance.app.route("/api/delete_car/<id>", methods=["DELETE"])
+def api_delete_specific_car(id):
+    return api_instance.delete_specific_car(id)
 
 @api_instance.app.route("/api/create_brand", methods=["POST"])
 def api_create_brand():
