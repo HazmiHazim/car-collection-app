@@ -241,6 +241,36 @@ class Api:
             cursor.close()
             connection.close()
             
+    def retrieve_specific_brand(self, id):
+        try:
+            if request.method != "GET":
+                return "Method Not Allowed", 405
+            
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            query = ("SELECT * FROM brands WHERE id = %s")
+            cursor.execute(query, (id,))
+            brand_data = cursor.fetchone()
+            # Initialize empty dictionaries
+            if brand_data:
+                brand = {
+                    "id": brand_data[0],
+                    "name": brand_data[1],
+                    "image": brand_data[2],
+                    "created_at": brand_data[3],
+                    "updated_at": brand_data[4]
+                }
+                return brand, 200
+            else:
+                return f"Brand for id = {id} not found", 404
+        
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            cursor.close()
+            connection.close()
+            
 api_instance = Api()
 @api_instance.app.route("/api/create_car", methods=["POST"])
 def api_create_car():
@@ -250,7 +280,7 @@ def api_create_car():
 def api_retrieve_all_cars():
     return api_instance.retrieve_all_cars()
 
-@api_instance.app.route("/api/cars/<id>", methods=["GET"])
+@api_instance.app.route("/api/car/<id>", methods=["GET"])
 def api_retrieve_specific_car(id):
     return api_instance.retrieve_specific_car(id)
 
@@ -265,6 +295,10 @@ def api_create_brand():
 @api_instance.app.route("/api/all_brands", methods=["GET"])
 def api_retrieve_all_brands():
     return api_instance.retrieve_all_brands()
+
+@api_instance.app.route("/api/brand/<id>", methods=["GET"])
+def api_retrieve_specific_brand(id):
+    return api_instance.retrieve_specific_brand(id)
             
 if __name__ == "__main__":
     api_instance.app.run(host="0.0.0.0", port=5000, debug=True)
