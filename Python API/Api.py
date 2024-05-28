@@ -158,15 +158,19 @@ class Api:
             
             update_fields["updated_at"] = datetime.now()
             
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            
+            # Return error message if id does not exists
+            if not cursor.execute("SELECT id FROM cars WHERE id = %s", (id,)):
+                return f"Update failed. Car for id = {id} not found."
+            
             # Build the SET clause dynamically
             set_clause = ", ".join(f"{key} = %s" for key in update_fields.keys())
             values = list(update_fields.values())
             # Append the id at the end for the WHERE clause
             values.append(id)
             query = f"UPDATE cars SET {set_clause} WHERE id = %s"
-            
-            connection = self.database.db_connection()
-            cursor = connection.cursor()
             cursor.execute(query, values)
             # Make sure data is committed to the database
             connection.commit()
