@@ -21,12 +21,13 @@ class Api:
             car_name = request.args.get("car_name")
             car_model =  request.args.get("car_model")
             car_description = request.args.get("car_description")
+            car_image = request.args.get("car_image")
             brand_id = 1
             category_id = 1
             created_at = datetime.now()
             updated_at = datetime.now()
             
-            if not all([car_name, car_model, car_description, brand_id, category_id]):
+            if not all([car_name, car_model, car_description, car_image, brand_id, category_id]):
                 return "Bad Request - Missing Parameters", 400
             
             # Make connection to Database
@@ -34,10 +35,10 @@ class Api:
             cursor = connection.cursor()
             query = (
                 "INSERT INTO cars "
-                "(name, model, description, brand_id, category_id, created_at, updated_at) "
-                "VALUES (%s, %s, %s, %s, %s, %s, %s)"
+                "(name, model, description, image, brand_id, category_id, created_at, updated_at) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
             )
-            data = (car_name, car_model, car_description, brand_id, category_id, created_at, updated_at)
+            data = (car_name, car_model, car_description, car_image, brand_id, category_id, created_at, updated_at)
             cursor.execute(query, data)
             # Make sure data is committed to the database
             connection.commit()
@@ -60,9 +61,24 @@ class Api:
             cursor = connection.cursor()
             query = ("SELECT * FROM cars")
             cursor.execute(query)
-            car_list = cursor.fetchall()
+            car_list_data = cursor.fetchall()
+            # Initialize empty list to store dictionaries representing cars
+            cars = []
+            for car_data in car_list_data:
+                car = {
+                    "id": car_data[0],
+                    "name": car_data[1],
+                    "model": car_data[2],
+                    "description": car_data[3],
+                    "image": car_data[4],
+                    "brand_id": car_data[5],
+                    "category_id": car_data[6],
+                    "created_at": car_data[7],
+                    "updated_at": car_data[8]
+                }
+            cars.append(car)
             
-            return car_list, 200
+            return cars, 200
         
         except Exception as error:
             self.logger.debug(error)
@@ -80,7 +96,18 @@ class Api:
             cursor = connection.cursor()
             query = ("SELECT * FROM cars WHERE id = %s")
             cursor.execute(query, (id,))
-            car = cursor.fetchone()
+            car_data = cursor.fetchone()
+            car = {
+                "id": car_data[0],
+                "name": car_data[1],
+                "model": car_data[2],
+                "description": car_data[3],
+                "image": car_data[4],
+                "brand_id": car_data[5],
+                "category_id": car_data[6],
+                "created_at": car_data[7],
+                "updated_at": car_data[8]
+            }
             
             return car, 200
         
