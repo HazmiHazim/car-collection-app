@@ -121,6 +121,126 @@ class Api:
             cursor.close()
             connection.close()
             
+    def update_specific_car(self, id):
+        try:
+            if request.method not in ["POST", "PUT"]:
+                return "Method Not Allowed", 405
+            
+            car_name = request.args.get("car_name")
+            car_model =  request.args.get("car_model")
+            car_description = request.args.get("car_description")
+            car_image = request.args.get("car_image")
+            brand_id = request.args.get("brand_id")
+            category_id = request.args.get("category_id")
+            
+            # Create a dictionary for dynamic update query
+            update_fields = {}
+            if car_name:
+                update_fields["name"] = car_name
+            
+            if car_model:
+                update_fields["model"] = car_model
+                
+            if car_description:
+                update_fields["description"] = car_description
+                
+            if car_image:
+                update_fields["image"] = car_image
+                
+            if brand_id:
+                update_fields["brand_id"] = brand_id
+                
+            if category_id:
+                update_fields["category_id"] = category_id
+                
+            if not update_fields:
+                return "Please enter at least one field to update.", 400
+            
+            update_fields["updated_at"] = datetime.now()
+            
+            # Build the SET clause dynamically
+            set_clause = ", ".join(f"{key} = %s" for key in update_fields.keys())
+            values = list(update_fields.values())
+            # Append the id at the end for the WHERE clause
+            values.append(id)
+            query = f"UPDATE cars SET {set_clause} WHERE id = %s"
+            
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            cursor.execute(query, values)
+            # Make sure data is committed to the database
+            connection.commit()
+            return "Updated successfully.", 200
+            
+        except Exception as error:
+            self.logger.debug(error)
+            
+    def create_brand(self):
+        try:
+            if request.method != "POST":
+                return "Method Not Allowed", 405
+            
+            brand_name = request.args.get("brand_name")
+            brand_image = request.args.get("brand_image")
+            created_at = datetime.now()
+            updated_at = datetime.now()
+            
+            if not all([brand_name, brand_image]):
+                return "Bad Request - Missing Parameters", 400
+            
+            # Make connection to Database
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            query = (
+                "INSERT INTO brands "
+                "(name, image, created_at, updated_at)"
+                "VALUES (%s, %s, %s, %s)"
+            )
+            data = (brand_name, brand_image, created_at, updated_at)
+            cursor.execute(query, data)
+            # Make sure data is committed to the database
+            connection.commit()
+            
+            return "Brand created successfully.", 200
+            
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            cursor.close()
+            connection.close()
+            
+    def retrieve_all_brands(self):
+        try:
+            if request.method != "GET":
+                return "Method Not Allowed", 405
+            
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            query = ("SELECT * FROM brands")
+            cursor.execute(query)
+            brand_list_data = cursor.fetchall()
+            # Initialize empty list to store dictionaries representing cars
+            brands = []
+            for brand_data in brand_list_data:
+                brand = {
+                    "id": brand_data[0],
+                    "name": brand_data[1],
+                    "image": brand_data[2],
+                    "created_at": brand_data[3],
+                    "updated_at": brand_data[4]
+                }
+                brands.append(brand)
+            
+            return brands, 200
+        
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            cursor.close()
+            connection.close()
+            
 api_instance = Api()
 @api_instance.app.route("/api/create_car", methods=["POST"])
 def api_create_car():
@@ -133,6 +253,18 @@ def api_retrieve_all_cars():
 @api_instance.app.route("/api/cars/<id>", methods=["GET"])
 def api_retrieve_specific_car(id):
     return api_instance.retrieve_specific_car(id)
+
+@api_instance.app.route("/api/update_car/<id>", methods=["PUT", "POST"])
+def api_update_specific_car(id):
+    return api_instance.update_specific_car(id)
+
+@api_instance.app.route("/api/create_brand", methods=["POST"])
+def api_create_brand():
+    return api_instance.create_brand()
+
+@api_instance.app.route("/api/all_brands", methods=["GET"])
+def api_retrieve_all_brands():
+    return api_instance.retrieve_all_brands()
             
 if __name__ == "__main__":
     api_instance.app.run(host="0.0.0.0", port=5000, debug=True)
