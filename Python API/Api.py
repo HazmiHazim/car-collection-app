@@ -45,7 +45,7 @@ class Api:
             
             return "Car created successfully.", 200
         
-        except ConnectionError as error:
+        except Exception as error:
             self.logger.debug(error)
         
         finally:
