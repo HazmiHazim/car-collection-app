@@ -9,7 +9,7 @@
     ```
     sudo apt-get install gunicorn
     ```
-2. Create new service file name `car-collection-api.service` in path /etc/systemd/system/
+2. Create new service file name `car-collection-api.service` in path `/etc/systemd/system/`
     ```
     touch /etc/systemd/system/car-collection-api.service
     ```
@@ -42,5 +42,5 @@
     ```
 7. Start the service
     ```
-    sudo systemctl start car-collection-api
+    sudo systemctl start car-collection-api.service
     ```
