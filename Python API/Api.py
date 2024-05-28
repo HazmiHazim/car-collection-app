@@ -76,7 +76,7 @@ class Api:
                     "created_at": car_data[7],
                     "updated_at": car_data[8]
                 }
-            cars.append(car)
+                cars.append(car)
             
             return cars, 200
         
