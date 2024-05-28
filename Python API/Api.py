@@ -60,9 +60,9 @@ class Api:
             cursor = connection.cursor()
             query = ("SELECT * FROM cars")
             cursor.execute(query)
-            data = cursor.fetchall()
+            car_list = cursor.fetchall()
             
-            return data, 200
+            return car_list, 200
         
         except Exception as error:
             self.logger.debug(error)
@@ -71,6 +71,25 @@ class Api:
             cursor.close()
             connection.close()
             
+    def retrieve_specific_car(self, id):
+        try:
+            if request.method != "GET":
+                return "Method Not Allowed", 405
+            
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            query = ("SELECT * FROM cars WHERE id = %s")
+            cursor.execute(query, (id,))
+            car = cursor.fetchone()
+            
+            return car, 200
+        
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            cursor.close()
+            connection.close()
             
 api_instance = Api()
 @api_instance.app.route("/api/create_car", methods=["POST"])
@@ -80,6 +99,10 @@ def api_create_car():
 @api_instance.app.route("/api/all_cars", methods=["GET"])
 def api_retrieve_all_cars():
     return api_instance.retrieve_all_cars()
+
+@api_instance.app.route("/api/cars/<id>", methods=["GET"])
+def api_retrieve_specific_car(id):
+    return api_instance.retrieve_specific_car(id)
             
 if __name__ == "__main__":
     api_instance.app.run(host="0.0.0.0", port=5000, debug=True)
