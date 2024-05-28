@@ -22,8 +22,8 @@ class Api:
             car_model =  request.args.get("car_model")
             car_description = request.args.get("car_description")
             car_image = request.args.get("car_image")
-            brand_id = 1
-            category_id = 1
+            brand_id = request.args.get("brand_id")
+            category_id = request.args.get("category_id")
             created_at = datetime.now()
             updated_at = datetime.now()
             
