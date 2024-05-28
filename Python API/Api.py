@@ -162,7 +162,8 @@ class Api:
             cursor = connection.cursor()
             
             # Return error message if id does not exists
-            if not cursor.execute("SELECT id FROM cars WHERE id = %s", (id,)):
+            cursor.execute("SELECT id FROM cars WHERE id = %s", (id,))
+            if not cursor.fetchone():
                 return f"Update failed. Car for id = {id} not found.", 404
             
             # Build the SET clause dynamically
