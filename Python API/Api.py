@@ -16,7 +16,7 @@ class Api:
     def create_car(self):
         try:
             if request.method != "POST":
-                return "Method Not Allowed", 405
+                return "Method Not Allowed"
             
             car_name = request.args.get("car_name")
             car_model =  request.args.get("car_model")
@@ -27,7 +27,7 @@ class Api:
             updated_at = datetime.now()
             
             if not all([car_name, car_model, car_description, brand_id, category_id]):
-                return "Bad Request - Missing Parameters", 400
+                return "Bad Request - Missing Parameters"
             
             # Make connection to Database
             connection = self.database.db_connection()
@@ -43,7 +43,7 @@ class Api:
             # Make sure data is committed to the database
             connection.commit()
             
-            return "Car created successfully.", 200
+            return "Car created successfully."
         
         except ConnectionError as error:
             self.logger.debug(error)
