@@ -97,19 +97,22 @@ class Api:
             query = ("SELECT * FROM cars WHERE id = %s")
             cursor.execute(query, (id,))
             car_data = cursor.fetchone()
-            car = {
-                "id": car_data[0],
-                "name": car_data[1],
-                "model": car_data[2],
-                "description": car_data[3],
-                "image": car_data[4],
-                "brand_id": car_data[5],
-                "category_id": car_data[6],
-                "created_at": car_data[7],
-                "updated_at": car_data[8]
-            }
-            
-            return car, 200
+            # Initialize empty dictionaries
+            if car_data:
+                car = {
+                    "id": car_data[0],
+                    "name": car_data[1],
+                    "model": car_data[2],
+                    "description": car_data[3],
+                    "image": car_data[4],
+                    "brand_id": car_data[5],
+                    "category_id": car_data[6],
+                    "created_at": car_data[7],
+                    "updated_at": car_data[8]
+                }
+                return car, 200
+            else:
+                return f"Car for id = {id} not found", 404
         
         except Exception as error:
             self.logger.debug(error)
