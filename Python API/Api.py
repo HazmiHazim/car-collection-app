@@ -14,6 +14,8 @@ class Api:
         self.logger = Logger()
         
     def create_car(self):
+        connection = None
+        cursor = None
         try:
             if request.method != "POST":
                 return "Method Not Allowed", 405
@@ -49,10 +51,14 @@ class Api:
             self.logger.debug(error)
         
         finally:
-            cursor.close()
-            connection.close()
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
     def retrieve_all_cars(self):
+        connection = None
+        cursor = None
         try:
             if request.method != "GET":
                 return "Method Not Allowed", 405
@@ -84,10 +90,14 @@ class Api:
             self.logger.debug(error)
             
         finally:
-            cursor.close()
-            connection.close()
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
     def retrieve_specific_car(self, id):
+        connection = None
+        cursor = None
         try:
             if request.method != "GET":
                 return "Method Not Allowed", 405
@@ -118,12 +128,14 @@ class Api:
             self.logger.debug(error)
             
         finally:
-            cursor.close()
-            connection.close()
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
     def update_specific_car(self, id):
-        connection = self.database.db_connection()
-        cursor = connection.cursor()
+        connection = None
+        cursor = None
         try:
             if request.method not in ["POST", "PUT"]:
                 return "Method Not Allowed", 405
@@ -160,6 +172,9 @@ class Api:
             
             update_fields["updated_at"] = datetime.now()
             
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            
             # Return error message if id does not exists
             cursor.execute("SELECT id FROM cars WHERE id = %s", (id,))
             if not cursor.fetchone():
@@ -180,10 +195,14 @@ class Api:
             self.logger.debug(error)
             
         finally:
-            cursor.close()
-            connection.close()
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
     def delete_specific_car(self, id):
+        connection = None
+        cursor = None
         try:
             if request.method != "DELETE":
                 return "Method Not Allowed", 405
@@ -203,10 +222,14 @@ class Api:
             self.logger.debug(error)
             
         finally:
-            cursor.close()
-            connection.close()
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
     def create_brand(self):
+        connection = None
+        cursor = None
         try:
             if request.method != "POST":
                 return "Method Not Allowed", 405
@@ -238,10 +261,14 @@ class Api:
             self.logger.debug(error)
             
         finally:
-            cursor.close()
-            connection.close()
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
     def retrieve_all_brands(self):
+        connection = None
+        cursor = None
         try:
             if request.method != "GET":
                 return "Method Not Allowed", 405
@@ -269,10 +296,14 @@ class Api:
             self.logger.debug(error)
             
         finally:
-            cursor.close()
-            connection.close()
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
     def retrieve_specific_brand(self, id):
+        connection = None
+        cursor = None
         try:
             if request.method != "GET":
                 return "Method Not Allowed", 405
@@ -299,12 +330,14 @@ class Api:
             self.logger.debug(error)
             
         finally:
-            cursor.close()
-            connection.close()
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
     def update_specific_brand(self, id):
-        connection = self.database.db_connection()
-        cursor = connection.cursor()
+        connection = None
+        cursor = None
         try:
             if request.method not in ["POST", "PUT"]:
                 return "Method Not Allowed", 405
@@ -324,6 +357,9 @@ class Api:
                 return "Please enter at least one field to update.", 400
             
             update_fields["updated_at"] = datetime.now()
+            
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
             
             # Return error message if id does not exists
             cursor.execute("SELECT id FROM brands WHERE id = %s", (id,))
@@ -345,8 +381,10 @@ class Api:
             self.logger.debug(error)
             
         finally:
-            cursor.close()
-            connection.close()
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
 api_instance = Api()
 @api_instance.app.route("/api/create_car", methods=["POST"])
