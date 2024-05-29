@@ -450,6 +450,73 @@ class Api:
                 cursor.close()
             if connection is not None:
                 connection.close()
+                
+    def retrieve_all_categories(self):
+        connection = None
+        cursor = None
+        try:
+            if request.method != "GET":
+                return "Method Not Allowed", 405
+            
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            query = ("SELECT * FROM categories")
+            cursor.execute(query)
+            category_list_data = cursor.fetchall()
+            # Initialize empty list to store dictionaries representing cars
+            categories = []
+            for category_data in category_list_data:
+                category = {
+                    "id": category_data[0],
+                    "name": category_data[1],
+                    "created_at": category_data[2],
+                    "updated_at": category_data[3]
+                }
+                categories.append(category)
+            
+            return categories, 200
+        
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
+                
+    def retrieve_specific_category(self, id):
+        connection = None
+        cursor = None
+        try:
+            if request.method != "GET":
+                return "Method Not Allowed", 405
+            
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            query = ("SELECT * FROM categories WHERE id = %s")
+            cursor.execute(query, (id,))
+            category_data = cursor.fetchone()
+            # Initialize empty dictionaries
+            if category_data:
+                category = {
+                    "id": category_data[0],
+                    "name": category_data[1],
+                    "created_at": category_data[2],
+                    "updated_at": category_data[3]
+                }
+                return category, 200
+            else:
+                return f"Brand for id = {id} not found", 404
+        
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
 api_instance = Api()
 @api_instance.app.route("/api/create_car", methods=["POST"])
@@ -495,6 +562,14 @@ def api_delete_specific_brand(id):
 @api_instance.app.route("/api/create_category", methods=["POST"])
 def api_create_category():
     return api_instance.create_category()
+
+@api_instance.app.route("/api/all_categories", methods=["GET"])
+def api_retrieve_all_categories():
+    return api_instance.retrieve_all_categories()
+
+@api_instance.app.route("/api/category/<id>", methods=["GET"])
+def api_retrieve_specific_category(id):
+    return api_instance.retrieve_specific_category(id)
             
 if __name__ == "__main__":
     api_instance.app.run(host="0.0.0.0", port=5000, debug=True)
