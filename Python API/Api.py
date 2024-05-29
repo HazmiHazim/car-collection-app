@@ -385,6 +385,33 @@ class Api:
                 cursor.close()
             if connection is not None:
                 connection.close()
+                
+    def delete_specific_brand(self, id):
+        connection = None
+        cursor = None
+        try:
+            if request.method != "DELETE":
+                return "Method Not Allowed", 405
+            
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            query = "DELETE FROM brands WHERE id = %s"
+            cursor.execute(query, (id,))
+            
+            if cursor.rowcount > 0:
+                connection.commit()
+                return "Deleted successfully.", 200
+            else:
+                return f"Delete failed. Car for id = {id} not found", 404
+            
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
 api_instance = Api()
 @api_instance.app.route("/api/create_car", methods=["POST"])
@@ -422,6 +449,10 @@ def api_retrieve_specific_brand(id):
 @api_instance.app.route("/api/update_brand/<id>", methods=["PUT", "POST"])
 def api_update_specific_brand(id):
     return api_instance.update_specific_brand(id)
+
+@api_instance.app.route("/api/delete_brand/<id>", methods=["DELETE"])
+def api_delete_specific_brand(id):
+    return api_instance.delete_specific_brand(id)
             
 if __name__ == "__main__":
     api_instance.app.run(host="0.0.0.0", port=5000, debug=True)
