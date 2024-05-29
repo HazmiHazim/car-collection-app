@@ -402,7 +402,7 @@ class Api:
                 connection.commit()
                 return "Deleted successfully.", 200
             else:
-                return f"Delete failed. Car for id = {id} not found", 404
+                return f"Delete failed. Brand for id = {id} not found", 404
             
         except Exception as error:
             self.logger.debug(error)
@@ -507,7 +507,7 @@ class Api:
                 }
                 return category, 200
             else:
-                return f"Brand for id = {id} not found", 404
+                return f"Category for id = {id} not found", 404
         
         except Exception as error:
             self.logger.debug(error)
@@ -555,6 +555,33 @@ class Api:
             # Make sure data is committed to the database
             connection.commit()
             return "Updated successfully.", 200
+            
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
+                
+    def delete_specific_category(self, id):
+        connection = None
+        cursor = None
+        try:
+            if request.method != "DELETE":
+                return "Method Not Allowed", 405
+            
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            query = "DELETE FROM categories WHERE id = %s"
+            cursor.execute(query, (id,))
+            
+            if cursor.rowcount > 0:
+                connection.commit()
+                return "Deleted successfully.", 200
+            else:
+                return f"Delete failed. Category for id = {id} not found", 404
             
         except Exception as error:
             self.logger.debug(error)
@@ -621,6 +648,10 @@ def api_retrieve_specific_category(id):
 @api_instance.app.route("/api/update_category/<id>", methods=["PUT", "POST"])
 def api_update_specific_category(id):
     return api_instance.update_specific_category(id)
+
+@api_instance.app.route("/api/delete_category/<id>", methods=["DELETE"])
+def api_delete_specific_category(id):
+    return api_instance.delete_specific_category(id)
             
 if __name__ == "__main__":
     api_instance.app.run(host="0.0.0.0", port=5000, debug=True)
