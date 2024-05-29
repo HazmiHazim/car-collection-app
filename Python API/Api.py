@@ -517,6 +517,53 @@ class Api:
                 cursor.close()
             if connection is not None:
                 connection.close()
+                
+    def update_specific_category(self, id):
+        connection = None
+        cursor = None
+        try:
+            if request.method not in ["POST", "PUT"]:
+                return "Method Not Allowed", 405
+            
+            category_name = request.args.get("category_name")
+            
+            # Create a dictionary for dynamic update query
+            update_fields = {}
+            if category_name:
+                update_fields["name"] = category_name
+                
+            if not update_fields:
+                return "Please enter at least one field to update.", 400
+            
+            update_fields["updated_at"] = datetime.now()
+            
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            
+            # Return error message if id does not exists
+            cursor.execute("SELECT id FROM categories WHERE id = %s", (id,))
+            if not cursor.fetchone():
+                return f"Update failed. Category for id = {id} not found.", 404
+            
+            # Build the SET clause dynamically
+            set_clause = ", ".join(f"{key} = %s" for key in update_fields.keys())
+            values = list(update_fields.values())
+            # Append the id at the end for the WHERE clause
+            values.append(id)
+            query = f"UPDATE categories SET {set_clause} WHERE id = %s"
+            cursor.execute(query, values)
+            # Make sure data is committed to the database
+            connection.commit()
+            return "Updated successfully.", 200
+            
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
 api_instance = Api()
 @api_instance.app.route("/api/create_car", methods=["POST"])
@@ -570,6 +617,10 @@ def api_retrieve_all_categories():
 @api_instance.app.route("/api/category/<id>", methods=["GET"])
 def api_retrieve_specific_category(id):
     return api_instance.retrieve_specific_category(id)
+
+@api_instance.app.route("/api/update_category/<id>", methods=["PUT", "POST"])
+def api_update_specific_category(id):
+    return api_instance.update_specific_category(id)
             
 if __name__ == "__main__":
     api_instance.app.run(host="0.0.0.0", port=5000, debug=True)
