@@ -122,6 +122,8 @@ class Api:
             connection.close()
             
     def update_specific_car(self, id):
+        connection = self.database.db_connection()
+        cursor = connection.cursor()
         try:
             if request.method not in ["POST", "PUT"]:
                 return "Method Not Allowed", 405
@@ -157,9 +159,6 @@ class Api:
                 return "Please enter at least one field to update.", 400
             
             update_fields["updated_at"] = datetime.now()
-            
-            connection = self.database.db_connection()
-            cursor = connection.cursor()
             
             # Return error message if id does not exists
             cursor.execute("SELECT id FROM cars WHERE id = %s", (id,))
@@ -303,6 +302,52 @@ class Api:
             cursor.close()
             connection.close()
             
+    def update_specific_brand(self, id):
+        connection = self.database.db_connection()
+        cursor = connection.cursor()
+        try:
+            if request.method not in ["POST", "PUT"]:
+                return "Method Not Allowed", 405
+            
+            brand_name = request.args.get("brand_name")
+            brand_image =  request.args.get("brand_image")
+            
+            # Create a dictionary for dynamic update query
+            update_fields = {}
+            if brand_name:
+                update_fields["name"] = brand_name
+            
+            if brand_image:
+                update_fields["image"] = brand_image
+                
+            if not update_fields:
+                return "Please enter at least one field to update.", 400
+            
+            update_fields["updated_at"] = datetime.now()
+            
+            # Return error message if id does not exists
+            cursor.execute("SELECT id FROM brands WHERE id = %s", (id,))
+            if not cursor.fetchone():
+                return f"Update failed. Brand for id = {id} not found.", 404
+            
+            # Build the SET clause dynamically
+            set_clause = ", ".join(f"{key} = %s" for key in update_fields.keys())
+            values = list(update_fields.values())
+            # Append the id at the end for the WHERE clause
+            values.append(id)
+            query = f"UPDATE brands SET {set_clause} WHERE id = %s"
+            cursor.execute(query, values)
+            # Make sure data is committed to the database
+            connection.commit()
+            return "Updated successfully.", 200
+            
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            cursor.close()
+            connection.close()
+            
 api_instance = Api()
 @api_instance.app.route("/api/create_car", methods=["POST"])
 def api_create_car():
@@ -335,6 +380,10 @@ def api_retrieve_all_brands():
 @api_instance.app.route("/api/brand/<id>", methods=["GET"])
 def api_retrieve_specific_brand(id):
     return api_instance.retrieve_specific_brand(id)
+
+@api_instance.app.route("/api/update_brand/<id>", methods=["PUT", "POST"])
+def api_update_specific_brand(id):
+    return api_instance.update_specific_brand(id)
             
 if __name__ == "__main__":
     api_instance.app.run(host="0.0.0.0", port=5000, debug=True)
