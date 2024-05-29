@@ -412,6 +412,44 @@ class Api:
                 cursor.close()
             if connection is not None:
                 connection.close()
+                
+    def create_category(self):
+        connection = None
+        cursor = None
+        try:
+            if request.method != "POST":
+                return "Method Not Allowed", 405
+            
+            category_name = request.args.get("category_name")
+            created_at = datetime.now()
+            updated_at = datetime.now()
+            
+            if not category_name:
+                return "Bad Request - Missing Parameters", 400
+            
+            # Make connection to Database
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            query = (
+                "INSERT INTO categories "
+                "(name, created_at, updated_at)"
+                "VALUES (%s, %s, %s)"
+            )
+            data = (category_name, created_at, updated_at)
+            cursor.execute(query, data)
+            # Make sure data is committed to the database
+            connection.commit()
+            
+            return "Category created successfully.", 200
+            
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
 api_instance = Api()
 @api_instance.app.route("/api/create_car", methods=["POST"])
@@ -453,6 +491,10 @@ def api_update_specific_brand(id):
 @api_instance.app.route("/api/delete_brand/<id>", methods=["DELETE"])
 def api_delete_specific_brand(id):
     return api_instance.delete_specific_brand(id)
+
+@api_instance.app.route("/api/create_category", methods=["POST"])
+def api_create_category():
+    return api_instance.create_category()
             
 if __name__ == "__main__":
     api_instance.app.run(host="0.0.0.0", port=5000, debug=True)
