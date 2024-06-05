@@ -1,3 +1,4 @@
+import re
 from flask import Flask
 from flask import request
 from Database import Database
@@ -591,6 +592,52 @@ class Api:
                 cursor.close()
             if connection is not None:
                 connection.close()
+                
+    def create_colour(self):
+        connection = None
+        cursor = None
+        try:
+            if request.method != "POST":
+                return "Method Not Allowed", 405
+            
+            colour_name = request.args.get("colour_name")
+            hex_code = request.args.get("hex_code")
+            created_at = datetime.now()
+            updated_at = datetime.now()
+            
+            if not all([colour_name, hex_code]):
+                return "Bad Request - Missing Parameters", 400
+            
+            # Regular expression to match hex colour code entered by user
+            hex_pattern = re.compile(r"^#?([a-f0-9]{6}|[a-f0-9]{3})$")
+            
+            # Check if the hex code entered by user is valid format
+            if not hex_pattern.match(hex_code):
+                return "Invalid hex code", 400
+            
+            # Make connection to Database
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            query = (
+                "INSERT INTO colours "
+                "(name, hex, created_at, updated_at)"
+                "VALUES (%s, %s, %s, %s)"
+            )
+            data = (colour_name, hex_code, created_at, updated_at)
+            cursor.execute(query, data)
+            # Make sure data is committed to the database
+            connection.commit()
+            
+            return "Colour created successfully.", 200
+            
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
 api_instance = Api()
 @api_instance.app.route("/api/create_car", methods=["POST"])
@@ -652,6 +699,10 @@ def api_update_specific_category(id):
 @api_instance.app.route("/api/delete_category/<id>", methods=["DELETE"])
 def api_delete_specific_category(id):
     return api_instance.delete_specific_category(id)
+
+@api_instance.app.route("/api/create_colour", methods=["POST"])
+def api_create_colour():
+    return api_instance.create_colour()
             
 if __name__ == "__main__":
     api_instance.app.run(host="0.0.0.0", port=5000, debug=True)
