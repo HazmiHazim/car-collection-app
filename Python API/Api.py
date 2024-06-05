@@ -638,6 +638,75 @@ class Api:
                 cursor.close()
             if connection is not None:
                 connection.close()
+                
+    def retrieve_all_colours(self):
+        connection = None
+        cursor = None
+        try:
+            if request.method != "GET":
+                return "Method Not Allowed", 405
+            
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            query = ("SELECT * FROM colours")
+            cursor.execute(query)
+            colour_list_data = cursor.fetchall()
+            # Initialize empty list to store dictionaries representing cars
+            colours = []
+            for colours_data in colour_list_data:
+                colour = {
+                    "id": colours_data[0],
+                    "name": colours_data[1],
+                    "hex": colours_data[2],
+                    "created_at": colours_data[3],
+                    "updated_at": colours_data[4]
+                }
+                colours.append(colour)
+            
+            return colours, 200
+        
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
+                
+    def retrieve_specific_colour(self, id):
+        connection = None
+        cursor = None
+        try:
+            if request.method != "GET":
+                return "Method Not Allowed", 405
+            
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            query = ("SELECT * FROM colours WHERE id = %s")
+            cursor.execute(query, (id,))
+            colour_data = cursor.fetchone()
+            # Initialize empty dictionaries
+            if colour_data:
+                colour = {
+                    "id": colour_data[0],
+                    "name": colour_data[1],
+                    "hex": colour_data[2],
+                    "created_at": colour_data[3],
+                    "updated_at": colour_data[4]
+                }
+                return colour, 200
+            else:
+                return f"Colour for id = {id} not found", 404
+        
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
 api_instance = Api()
 @api_instance.app.route("/api/create_car", methods=["POST"])
@@ -703,6 +772,14 @@ def api_delete_specific_category(id):
 @api_instance.app.route("/api/create_colour", methods=["POST"])
 def api_create_colour():
     return api_instance.create_colour()
+
+@api_instance.app.route("/api/all_colours", methods=["GET"])
+def api_retrieve_all_colours():
+    return api_instance.retrieve_all_colours()
+
+@api_instance.app.route("/api/colour/<id>", methods=["GET"])
+def api_retrieve_specific_coloury(id):
+    return api_instance.retrieve_specific_colour(id)
             
 if __name__ == "__main__":
     api_instance.app.run(host="0.0.0.0", port=5000, debug=True)
