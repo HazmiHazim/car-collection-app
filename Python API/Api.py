@@ -764,6 +764,33 @@ class Api:
                 cursor.close()
             if connection is not None:
                 connection.close()
+                
+    def delete_specific_colour(self, id):
+        connection = None
+        cursor = None
+        try:
+            if request.method != "DELETE":
+                return "Method Not Allowed", 405
+            
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            query = "DELETE FROM colours WHERE id = %s"
+            cursor.execute(query, (id,))
+            
+            if cursor.rowcount > 0:
+                connection.commit()
+                return "Deleted successfully.", 200
+            else:
+                return f"Delete failed. Colour for id = {id} not found", 404
+            
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
 api_instance = Api()
 @api_instance.app.route("/api/create_car", methods=["POST"])
@@ -835,12 +862,16 @@ def api_retrieve_all_colours():
     return api_instance.retrieve_all_colours()
 
 @api_instance.app.route("/api/colour/<id>", methods=["GET"])
-def api_retrieve_specific_coloury(id):
+def api_retrieve_specific_colour(id):
     return api_instance.retrieve_specific_colour(id)
 
 @api_instance.app.route("/api/update_colour/<id>", methods=["PUT", "POST"])
 def api_update_specific_colour(id):
     return api_instance.update_specific_colour(id)
+
+@api_instance.app.route("/api/delete_colour/<id>", methods=["DELETE"])
+def api_delete_specific_colour(id):
+    return api_instance.delete_specific_colour(id)
             
 if __name__ == "__main__":
     api_instance.app.run(host="0.0.0.0", port=5000, debug=True)
