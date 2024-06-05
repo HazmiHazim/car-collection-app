@@ -707,6 +707,63 @@ class Api:
                 cursor.close()
             if connection is not None:
                 connection.close()
+                
+    def update_specific_colour(self, id):
+        connection = None
+        cursor = None
+        try:
+            if request.method not in ["POST", "PUT"]:
+                return "Method Not Allowed", 405
+            
+            colour_name = request.args.get("colour_name")
+            hex_code =  request.args.get("hex_code")
+            
+            # Create a dictionary for dynamic update query
+            update_fields = {}
+            if colour_name:
+                update_fields["name"] = colour_name
+            
+            # Regular expression to match hex colour code entered by user
+            hex_pattern = re.compile(r"^#?([a-f0-9]{6}|[a-f0-9]{3})$")
+            
+            # Check if the hex code entered by user is valid format
+            if hex_code:
+                if not hex_pattern.match(hex_code):
+                    return "Invalid hex code", 400
+                update_fields["hex"] = hex_code
+                
+            if not update_fields:
+                return "Please enter at least one field to update.", 400
+            
+            update_fields["updated_at"] = datetime.now()
+            
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            
+            # Return error message if id does not exists
+            cursor.execute("SELECT id FROM colours WHERE id = %s", (id,))
+            if not cursor.fetchone():
+                return f"Update failed. Colour for id = {id} not found.", 404
+            
+            # Build the SET clause dynamically
+            set_clause = ", ".join(f"{key} = %s" for key in update_fields.keys())
+            values = list(update_fields.values())
+            # Append the id at the end for the WHERE clause
+            values.append(id)
+            query = f"UPDATE colours SET {set_clause} WHERE id = %s"
+            cursor.execute(query, values)
+            # Make sure data is committed to the database
+            connection.commit()
+            return "Updated successfully.", 200
+            
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
 api_instance = Api()
 @api_instance.app.route("/api/create_car", methods=["POST"])
@@ -780,6 +837,10 @@ def api_retrieve_all_colours():
 @api_instance.app.route("/api/colour/<id>", methods=["GET"])
 def api_retrieve_specific_coloury(id):
     return api_instance.retrieve_specific_colour(id)
+
+@api_instance.app.route("/api/update_colour/<id>", methods=["PUT", "POST"])
+def api_update_specific_colour(id):
+    return api_instance.update_specific_colour(id)
             
 if __name__ == "__main__":
     api_instance.app.run(host="0.0.0.0", port=5000, debug=True)
