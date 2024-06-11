@@ -21,17 +21,22 @@ class Api:
             if request.method != "POST":
                 return "Method Not Allowed", 405
             
-            car_name = request.args.get("car_name")
-            car_model =  request.args.get("car_model")
-            car_description = request.args.get("car_description")
-            car_image = request.args.get("car_image")
-            brand_id = request.args.get("brand_id")
-            category_id = request.args.get("category_id")
+            request_data = request.get_json()
+            
+            required_keys = [
+                "car_name",
+                "car_model",
+                "car_description",
+                "car_image",
+                "brand_id",
+                "category_id",
+            ]
+            
+            if not all(key in request_data for key in required_keys):
+                return "Bad Request - Missing Parameters", 400
+            
             created_at = datetime.now()
             updated_at = datetime.now()
-            
-            if not all([car_name, car_model, car_description, car_image, brand_id, category_id]):
-                return "Bad Request - Missing Parameters", 400
             
             # Make connection to Database
             connection = self.database.db_connection()
@@ -41,7 +46,16 @@ class Api:
                 "(name, model, description, image, brand_id, category_id, created_at, updated_at) "
                 "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
             )
-            data = (car_name, car_model, car_description, car_image, brand_id, category_id, created_at, updated_at)
+            data = (
+                request_data["car_name"],
+                request_data["car_model"],
+                request_data["car_description"],
+                request_data["car_image"],
+                request_data["brand_id"],
+                request_data["category_id"],
+                created_at,
+                updated_at
+            )
             cursor.execute(query, data)
             # Make sure data is committed to the database
             connection.commit()
@@ -141,32 +155,27 @@ class Api:
             if request.method not in ["POST", "PUT"]:
                 return "Method Not Allowed", 405
             
-            car_name = request.args.get("car_name")
-            car_model =  request.args.get("car_model")
-            car_description = request.args.get("car_description")
-            car_image = request.args.get("car_image")
-            brand_id = request.args.get("brand_id")
-            category_id = request.args.get("category_id")
+            request_data = request.get_json()
             
             # Create a dictionary for dynamic update query
             update_fields = {}
-            if car_name:
-                update_fields["name"] = car_name
+            if "car_name" in request_data:
+                update_fields["name"] = request_data["car_name"]
             
-            if car_model:
-                update_fields["model"] = car_model
+            if "car_model" in request_data:
+                update_fields["model"] = request_data["car_model"]
                 
-            if car_description:
-                update_fields["description"] = car_description
+            if "car_description" in request_data:
+                update_fields["description"] = request_data["car_description"]
                 
-            if car_image:
-                update_fields["image"] = car_image
+            if "car_image" in request_data:
+                update_fields["image"] = request_data["car_image"]
                 
-            if brand_id:
-                update_fields["brand_id"] = brand_id
+            if "brand_id" in request_data:
+                update_fields["brand_id"] = request_data["brand_id"]
                 
-            if category_id:
-                update_fields["category_id"] = category_id
+            if "category_id" in request_data:
+                update_fields["category_id"] = request_data["category_id"]
                 
             if not update_fields:
                 return "Please enter at least one field to update.", 400
@@ -235,13 +244,18 @@ class Api:
             if request.method != "POST":
                 return "Method Not Allowed", 405
             
-            brand_name = request.args.get("brand_name")
-            brand_image = request.args.get("brand_image")
+            request_data = request.get_json()
+            
+            required_keys = [
+                "brand_name",
+                "brand_image",
+            ]
+            
+            if not all(key in request_data for key in required_keys):
+                return "Bad Request - Missing Parameters", 400
+            
             created_at = datetime.now()
             updated_at = datetime.now()
-            
-            if not all([brand_name, brand_image]):
-                return "Bad Request - Missing Parameters", 400
             
             # Make connection to Database
             connection = self.database.db_connection()
@@ -251,7 +265,12 @@ class Api:
                 "(name, image, created_at, updated_at)"
                 "VALUES (%s, %s, %s, %s)"
             )
-            data = (brand_name, brand_image, created_at, updated_at)
+            data = (
+                request_data["brand_name"],
+                request_data["brand_image"],
+                created_at,
+                updated_at
+            )
             cursor.execute(query, data)
             # Make sure data is committed to the database
             connection.commit()
@@ -343,16 +362,15 @@ class Api:
             if request.method not in ["POST", "PUT"]:
                 return "Method Not Allowed", 405
             
-            brand_name = request.args.get("brand_name")
-            brand_image =  request.args.get("brand_image")
+            request_data = request.get_json()
             
             # Create a dictionary for dynamic update query
             update_fields = {}
-            if brand_name:
-                update_fields["name"] = brand_name
+            if "brand_name" in request_data:
+                update_fields["name"] = request_data["brand_name"]
             
-            if brand_image:
-                update_fields["image"] = brand_image
+            if "brand_image" in request_data:
+                update_fields["image"] = request_data["brand_image"]
                 
             if not update_fields:
                 return "Please enter at least one field to update.", 400
@@ -421,11 +439,12 @@ class Api:
             if request.method != "POST":
                 return "Method Not Allowed", 405
             
-            category_name = request.args.get("category_name")
+            request_data = request.get_json()
+            
             created_at = datetime.now()
             updated_at = datetime.now()
             
-            if not category_name:
+            if not "category_name" in request_data:
                 return "Bad Request - Missing Parameters", 400
             
             # Make connection to Database
@@ -436,7 +455,11 @@ class Api:
                 "(name, created_at, updated_at)"
                 "VALUES (%s, %s, %s)"
             )
-            data = (category_name, created_at, updated_at)
+            data = (
+                request_data["category_name"],
+                created_at,
+                updated_at
+            )
             cursor.execute(query, data)
             # Make sure data is committed to the database
             connection.commit()
@@ -526,12 +549,12 @@ class Api:
             if request.method not in ["POST", "PUT"]:
                 return "Method Not Allowed", 405
             
-            category_name = request.args.get("category_name")
+            request_data = request.get_json()
             
             # Create a dictionary for dynamic update query
             update_fields = {}
-            if category_name:
-                update_fields["name"] = category_name
+            if "category_name" in request_data:
+                update_fields["name"] = request_data["category_name"]
                 
             if not update_fields:
                 return "Please enter at least one field to update.", 400
@@ -600,19 +623,24 @@ class Api:
             if request.method != "POST":
                 return "Method Not Allowed", 405
             
-            colour_name = request.args.get("colour_name")
-            hex_code = request.args.get("hex_code")
+            request_data = request.get_json()
+            
+            required_keys = [
+                "colour_name",
+                "hex_code",
+            ]
+            
+            if not all(key in request_data for key in required_keys):
+                return "Bad Request - Missing Parameters", 400
+            
             created_at = datetime.now()
             updated_at = datetime.now()
             
-            if not all([colour_name, hex_code]):
-                return "Bad Request - Missing Parameters", 400
-            
             # Regular expression to match hex colour code entered by user
-            hex_pattern = re.compile(r"^#?([a-f0-9]{6}|[a-f0-9]{3})$")
+            hex_pattern = re.compile(r"^#([a-f0-9]{6}|[a-f0-9]{3})$", re.IGNORECASE)
             
             # Check if the hex code entered by user is valid format
-            if not hex_pattern.match(hex_code):
+            if not hex_pattern.match(request_data["hex_code"]):
                 return "Invalid hex code", 400
             
             # Make connection to Database
@@ -623,7 +651,12 @@ class Api:
                 "(name, hex, created_at, updated_at)"
                 "VALUES (%s, %s, %s, %s)"
             )
-            data = (colour_name, hex_code, created_at, updated_at)
+            data = (
+                request_data["colour_name"],
+                request_data["hex_code"],
+                created_at,
+                updated_at
+            )
             cursor.execute(query, data)
             # Make sure data is committed to the database
             connection.commit()
@@ -715,22 +748,21 @@ class Api:
             if request.method not in ["POST", "PUT"]:
                 return "Method Not Allowed", 405
             
-            colour_name = request.args.get("colour_name")
-            hex_code =  request.args.get("hex_code")
+            request_data = request.get_json()
             
             # Create a dictionary for dynamic update query
             update_fields = {}
-            if colour_name:
-                update_fields["name"] = colour_name
+            if "colour_name" in request_data:
+                update_fields["name"] = request_data["colour_name"]
             
             # Regular expression to match hex colour code entered by user
-            hex_pattern = re.compile(r"^#?([a-f0-9]{6}|[a-f0-9]{3})$")
+            hex_pattern = re.compile(r"^#([a-f0-9]{6}|[a-f0-9]{3})$", re.IGNORECASE)
             
             # Check if the hex code entered by user is valid format
-            if hex_code:
-                if not hex_pattern.match(hex_code):
+            if "hex_code" in request_data:
+                if not hex_pattern.match(request_data["hex_code"]):
                     return "Invalid hex code", 400
-                update_fields["hex"] = hex_code
+                update_fields["hex"] = request_data["hex_code"]
                 
             if not update_fields:
                 return "Please enter at least one field to update.", 400
