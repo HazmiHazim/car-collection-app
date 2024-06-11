@@ -13,7 +13,6 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { signIn } from "@/api/auth/login";
 
 function Copyright(props: any) {
   return (
@@ -44,15 +43,16 @@ export default function SignIn() {
     const email = formData.get("email");
     const password = formData.get("password");
 
-    try {
-      const result = await signIn({ email, password });
-      if (result?.ok) {
-        router.push("/dashboard");
-      } else {
-        console.error("Sign-in failed:", result?.error);
-      }
-    } catch (error) {
-      console.error("Error: ", error);
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+ 
+    if (response.ok) {
+      router.push('/profile')
+    } else {
+      // Handle errors
     }
   }
 
