@@ -34,6 +34,17 @@ class Database:
     def create_tables(self):
         try:
             connection = self.db_connection()
+            self.tables["users"] = (
+                "CREATE TABLE IF NOT EXISTS `users` ("
+                "`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,"
+                "`email` varchar(255) NOT NULL,"
+                "`password` varchar(255) NOT NULL,"
+                "`created_at` timestamp NULL DEFAULT NULL,"
+                "`updated_at` timestamp NULL DEFAULT NULL,"
+                "PRIMARY KEY (`id`)"
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+            )
+            
             self.tables["cars"] = (
                 "CREATE TABLE IF NOT EXISTS `cars` ("
                 "`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,"
