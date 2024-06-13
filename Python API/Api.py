@@ -823,6 +823,45 @@ class Api:
                 cursor.close()
             if connection is not None:
                 connection.close()
+                
+    def authenticate_user(self):
+        connection = None
+        cursor = None
+        try:
+            if request.method != "POST":
+                return "Method Not Allowed", 405
+            
+            auth_data = request.get_json()
+            
+            required_keys = [
+                "email",
+                "password",
+            ]
+            
+            if not all(key in auth_data for key in required_keys):
+                return "Bad Request - Missing Parameters", 400
+            
+            email = auth_data["email"]
+            password = auth_data["password"]
+            
+            connection = self.database.db_connection()
+            cursor = connection.cursor()
+            query = "SELECT * FROM users where email = %s AND password = SHA2(%s, 512)"
+            cursor.execute(query, (email, password))
+            user = cursor.fetchone()
+            if user:
+                return "Authentication successful", 200
+            else:
+                return "Authentication failed", 401
+            
+        except Exception as error:
+            self.logger.debug(error)
+            
+        finally:
+            if cursor is not None:
+                cursor.close()
+            if connection is not None:
+                connection.close()
             
 api_instance = Api()
 @api_instance.app.route("/api/create_car", methods=["POST"])
@@ -904,6 +943,10 @@ def api_update_specific_colour(id):
 @api_instance.app.route("/api/delete_colour/<id>", methods=["DELETE"])
 def api_delete_specific_colour(id):
     return api_instance.delete_specific_colour(id)
+
+@api_instance.app.route("/api/auth", methods=["POST"])
+def api_authenticate_user():
+    return api_instance.authenticate_user()
             
 if __name__ == "__main__":
     api_instance.app.run(host="0.0.0.0", port=5000, debug=True)
