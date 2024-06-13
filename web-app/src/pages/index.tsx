@@ -54,8 +54,7 @@ export default function SignIn() {
     });
  
     if (response.ok) {
-      console.log("Login Successful");
-      // router.push('/dashboard')
+      router.push('/dashboard')
     } else {
       console.log("Error: ", response.text)
     }
