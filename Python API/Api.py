@@ -4,11 +4,13 @@ from flask import request
 from Database import Database
 from Logger import Logger
 from datetime import datetime
+from flask_cors import CORS
 
 class Api:
     
     def __init__(self) -> None:
         self.app = Flask(__name__)
+        CORS(self.app)  # Enable CORS for Flask app
         # Create an instance class of DBConnection
         self.database = Database()
         # Create an instance class of Logger
@@ -846,7 +848,7 @@ class Api:
             
             connection = self.database.db_connection()
             cursor = connection.cursor()
-            query = "SELECT * FROM users where email = %s AND password = SHA2(%s, 512)"
+            query = "SELECT * FROM users where email = %s AND password = %s"
             cursor.execute(query, (email, password))
             user = cursor.fetchone()
             if user:
