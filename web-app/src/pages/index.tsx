@@ -13,6 +13,7 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { sha512 } from "js-sha512";
 
 function Copyright(props: any) {
   return (
@@ -40,14 +41,17 @@ export default function SignIn() {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
-    const email = formData.get("email");
-    const password = formData.get("password");
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
 
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    })
+    // Hash password before sending to api
+    const hashPassword = sha512(password);
+
+    const response = await fetch("http://192.168.128.17:5000/api/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email, password: hashPassword }),
+    });
  
     if (response.ok) {
       console.log("Login Successful");
