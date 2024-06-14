@@ -122,7 +122,7 @@ const MainLayout: FC<MainLayoutProps> = ({ children }) => {
             noWrap
             sx={{ flexGrow: 1 }}
           >
-            Dashboard
+            HazimNetto
           </Typography>
           <IconButton color="inherit">
             <AccountCircleIcon />
