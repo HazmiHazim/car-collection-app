@@ -1,12 +1,12 @@
 import { FC } from "react";
 import MainLayout from "../layout/mainLayout";
 
-const Dashboard: FC = () => {
+const Car: FC = () => {
   return (
     <MainLayout>
-      <div>This is dashboard page</div>
+      <div>This car page</div>
     </MainLayout>
   );
 };
 
-export default Dashboard;
+export default Car;

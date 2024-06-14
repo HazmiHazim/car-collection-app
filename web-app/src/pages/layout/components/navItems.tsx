@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { FC, Fragment } from "react";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
@@ -9,35 +9,38 @@ import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import CategoryIcon from "@mui/icons-material/Category";
 import StarsIcon from "@mui/icons-material/Stars";
 import ColorLensIcon from "@mui/icons-material/ColorLens";
-import { useRouter } from "next/navigation";
 
-export const mainListItems = (
+interface MainListItemsProps {
+  getPageClickHandler: (page: string) => () => void;
+}
+
+export const mainListItems: FC<MainListItemsProps> = ({ getPageClickHandler }) => (
   <Fragment>
-    <ListItemButton>
+    <ListItemButton onClick={getPageClickHandler("dashboard")}>
       <ListItemIcon>
         <SpaceDashboardIcon />
       </ListItemIcon>
       <ListItemText primary="Dashboard" />
     </ListItemButton>
-    <ListItemButton>
+    <ListItemButton onClick={getPageClickHandler("car")}>
       <ListItemIcon>
         <DirectionsCarIcon />
       </ListItemIcon>
       <ListItemText primary="Cars" />
     </ListItemButton>
-    <ListItemButton>
+    <ListItemButton onClick={getPageClickHandler("brand")}>
       <ListItemIcon>
         <StarsIcon />
       </ListItemIcon>
       <ListItemText primary="Brands" />
     </ListItemButton>
-    <ListItemButton>
+    <ListItemButton onClick={getPageClickHandler("category")}>
       <ListItemIcon>
         <CategoryIcon />
       </ListItemIcon>
       <ListItemText primary="Categories" />
     </ListItemButton>
-    <ListItemButton>
+    <ListItemButton onClick={getPageClickHandler("colour")}>
       <ListItemIcon>
         <ColorLensIcon />
       </ListItemIcon>
