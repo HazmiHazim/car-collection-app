@@ -47,7 +47,7 @@ export default function SignIn() {
     // Hash password before sending to api
     const hashPassword = sha512(password);
 
-    const response = await fetch("http://192.168.128.17:5000/api/auth", {
+    const response = await fetch("http://127.0.0.1:5000/api/auth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email: email, password: hashPassword }),

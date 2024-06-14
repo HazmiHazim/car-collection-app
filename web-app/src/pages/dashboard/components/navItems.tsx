@@ -9,6 +9,7 @@ import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import CategoryIcon from "@mui/icons-material/Category";
 import StarsIcon from "@mui/icons-material/Stars";
 import ColorLensIcon from "@mui/icons-material/ColorLens";
+import { useRouter } from "next/navigation";
 
 export const mainListItems = (
   <Fragment>

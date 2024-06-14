@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { styled, useTheme, Theme, CSSObject } from "@mui/material/styles";
+import { styled, Theme, CSSObject } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import MuiDrawer from "@mui/material/Drawer";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
@@ -10,11 +10,9 @@ import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { mainListItems, secondaryListItems } from "./components/navItems";
-import { Container, Grid, Paper } from "@mui/material";
+import { Grid, Paper } from "@mui/material";
 
 const drawerWidth = 240;
 
@@ -38,15 +36,6 @@ const closedMixin = (theme: Theme): CSSObject => ({
     width: `calc(${theme.spacing(8)} + 1px)`,
   },
 });
-
-const DrawerHeader = styled("div")(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "flex-end",
-  padding: theme.spacing(0, 1),
-  // necessary for content to be below app bar
-  ...theme.mixins.toolbar,
-}));
 
 interface AppBarProps extends MuiAppBarProps {
   open?: boolean;
@@ -88,31 +77,20 @@ const Drawer = styled(MuiDrawer, {
 }));
 
 export default function SideNav() {
-  const theme = useTheme();
-  const [open, setOpen] = useState(false);
-
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
-
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
+  const [open, setClose] = useState(true);
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex", backgroundColor: "#F6F8FB" }}>
       <CssBaseline />
-      <AppBar position="fixed" open={open}>
+      <AppBar position="fixed">
         <Toolbar>
           <IconButton
             color="inherit"
             aria-label="open drawer"
-            onClick={handleDrawerOpen}
-            edge="start"
-            sx={{
-              marginRight: 5,
-              ...(open && { display: "none" }),
+            onClick={() => {
+              setClose(!open);
             }}
+            edge="start"
           >
             <MenuIcon />
           </IconButton>
@@ -131,16 +109,14 @@ export default function SideNav() {
         </Toolbar>
       </AppBar>
       <Drawer variant="permanent" open={open}>
-        <DrawerHeader>
-          <IconButton onClick={handleDrawerClose}>
-            {theme.direction === "rtl" ? (
-              <ChevronRightIcon />
-            ) : (
-              <ChevronLeftIcon />
-            )}
-          </IconButton>
-        </DrawerHeader>
-        <Divider />
+        <Toolbar
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            px: [1],
+          }}
+        />
         <List component="nav">
           {mainListItems}
           <Divider sx={{ my: 1 }} />
@@ -153,8 +129,8 @@ export default function SideNav() {
         sx={{ flexGrow: 1, p: 3, minHeight: "100vh", overflow: "auto" }}
       >
         <Toolbar />
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-          <Grid container spacing={3}>
+        <Grid container maxWidth="xl" spacing={3}>
+          <Grid item xs={6}>
             <Paper
               sx={{
                 p: 2,
@@ -164,7 +140,7 @@ export default function SideNav() {
               }}
             ></Paper>
           </Grid>
-          <Grid item xs={12} md={4} lg={3}>
+          <Grid item xs={6}>
             <Paper
               sx={{
                 p: 2,
@@ -174,7 +150,17 @@ export default function SideNav() {
               }}
             ></Paper>
           </Grid>
-        </Container>
+          <Grid item xs={12}>
+            <Paper
+              sx={{
+                p: 2,
+                display: "flex",
+                flexDirection: "column",
+                height: 300,
+              }}
+            ></Paper>
+          </Grid>
+        </Grid>
       </Box>
     </Box>
   );
