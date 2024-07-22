@@ -1,4 +1,4 @@
-import { FormEvent } from "react";
+import { FormEvent, useState } from "react";
 import { useRouter } from "next/router";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
@@ -35,13 +35,34 @@ const defaultTheme = createTheme();
 
 export default function SignIn() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    setEmailError("");
+    setPasswordError("");
+
+    let hasError = false;
+
     const formData = new FormData(event.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
+
+    if (email.trim() === "") {
+      setEmailError("Email is required");
+      hasError = true;
+    }
+
+    if (password.trim() === "") {
+      setPasswordError("Password is required");
+      hasError = true;
+    }
+
+    if (hasError) return;
 
     const response = await fetch("http://127.0.0.1:5000/api/auth", {
       method: "POST",
@@ -54,7 +75,9 @@ export default function SignIn() {
       localStorage.setItem("token", token); // Save the token to local storage
       router.push("/dashboard");
     } else {
-      console.log("Error: ", response.text)
+      const error = await response.text()
+      console.log("Error: ", error)
+      alert(error)
     }
   }
 
@@ -91,6 +114,15 @@ export default function SignIn() {
               name="email"
               autoComplete="email"
               autoFocus
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (e.target.value.trim() !== "") {
+                  setEmailError("");
+                }
+              }}
+              error={!!emailError}
+              helperText={emailError}
             />
             <TextField
               margin="normal"
@@ -101,6 +133,15 @@ export default function SignIn() {
               type="password"
               id="password"
               autoComplete="current-password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (e.target.value.trim() !== "") {
+                  setPasswordError("");
+                }
+              }}
+              error={!!passwordError}
+              helperText={passwordError}
             />
             <FormControlLabel
               control={<Checkbox value="remember" color="primary" />}
