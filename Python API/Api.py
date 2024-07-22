@@ -233,11 +233,11 @@ class Api:
                 query = "DELETE FROM cars WHERE id = %s"
                 cursor.execute(query, (id,))
                 
-                if cursor.rowcount > 0:
-                    connection.commit()
-                    return "Deleted successfully.", 200
-                else:
+                if cursor.rowcount == 0:
                     return f"Delete failed. Car for id = {id} not found", 404
+                
+                connection.commit()
+                return "Deleted successfully.", 200
                 
             except Exception as error:
                 self.logger.debug(error)
@@ -433,11 +433,11 @@ class Api:
                 query = "DELETE FROM brands WHERE id = %s"
                 cursor.execute(query, (id,))
                 
-                if cursor.rowcount > 0:
-                    connection.commit()
-                    return "Deleted successfully.", 200
-                else:
+                if cursor.rowcount == 0:
                     return f"Delete failed. Brand for id = {id} not found", 404
+                
+                connection.commit()
+                return "Deleted successfully.", 200
                 
             except Exception as error:
                 self.logger.debug(error)
@@ -622,11 +622,11 @@ class Api:
                 query = "DELETE FROM categories WHERE id = %s"
                 cursor.execute(query, (id,))
                 
-                if cursor.rowcount > 0:
-                    connection.commit()
-                    return "Deleted successfully.", 200
-                else:
+                if cursor.rowcount == 0:
                     return f"Delete failed. Category for id = {id} not found", 404
+                
+                connection.commit()
+                return "Deleted successfully.", 200
                 
             except Exception as error:
                 self.logger.debug(error)
@@ -835,11 +835,11 @@ class Api:
                 query = "DELETE FROM colours WHERE id = %s"
                 cursor.execute(query, (id,))
                 
-                if cursor.rowcount > 0:
-                    connection.commit()
-                    return "Deleted successfully.", 200
-                else:
+                if cursor.rowcount == 0:
                     return f"Delete failed. Colour for id = {id} not found", 404
+                
+                connection.commit()
+                return "Deleted successfully.", 200
                 
             except Exception as error:
                 self.logger.debug(error)
