@@ -1,9 +1,13 @@
 import re
+import bcrypt
+import uuid
+import secrets
+import jwt
 from flask import Flask
-from flask import request
+from flask import request, jsonify
 from Database import Database
 from Logger import Logger
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_cors import CORS
 
 class Api:
@@ -107,7 +111,7 @@ class Api:
                     }
                     cars.append(car)
                 
-                return cars, 200
+                return jsonify(cars), 200
             
             except Exception as error:
                 self.logger.debug(error)
@@ -144,7 +148,7 @@ class Api:
                         "created_at": car_data[7],
                         "updated_at": car_data[8]
                     }
-                    return car, 200
+                    return jsonify(car), 200
                 else:
                     return f"Car for id = {id} not found", 404
             
@@ -323,7 +327,7 @@ class Api:
                     }
                     brands.append(brand)
                 
-                return brands, 200
+                return jsonify(brands), 200
             
             except Exception as error:
                 self.logger.debug(error)
@@ -356,7 +360,7 @@ class Api:
                         "created_at": brand_data[3],
                         "updated_at": brand_data[4]
                     }
-                    return brand, 200
+                    return jsonify(brand), 200
                 else:
                     return f"Brand for id = {id} not found", 404
             
@@ -516,7 +520,7 @@ class Api:
                     }
                     categories.append(category)
                 
-                return categories, 200
+                return jsonify(categories), 200
             
             except Exception as error:
                 self.logger.debug(error)
@@ -548,7 +552,7 @@ class Api:
                         "created_at": category_data[2],
                         "updated_at": category_data[3]
                     }
-                    return category, 200
+                    return jsonify(category), 200
                 else:
                     return f"Category for id = {id} not found", 404
             
@@ -719,7 +723,7 @@ class Api:
                     }
                     colours.append(colour)
                 
-                return colours, 200
+                return jsonify(colours), 200
             
             except Exception as error:
                 self.logger.debug(error)
@@ -752,7 +756,7 @@ class Api:
                         "created_at": colour_data[3],
                         "updated_at": colour_data[4]
                     }
-                    return colour, 200
+                    return jsonify(colour), 200
                 else:
                     return f"Colour for id = {id} not found", 404
             
@@ -873,14 +877,161 @@ class Api:
                 
                 connection = self.database.db_connection()
                 cursor = connection.cursor()
-                query = "SELECT * FROM users where email = %s AND password = %s"
-                cursor.execute(query, (email, password))
+                query = "SELECT * FROM users where email = %s"
+                cursor.execute(query, (email,))
                 user = cursor.fetchone()
-                if user:
-                    return "Authentication successful", 200
-                else:
-                    return "Authentication failed", 401
                 
+                if not user:
+                    return "Email does not exists in the record.", 401
+                
+                email = user[1]
+                password_db = user[2]
+                
+                # Converting entered password to bytes 
+                encoded_password = password.encode("utf-8")
+                # Convert password in db to bytes
+                
+                encoded_password_db = password_db.encode("utf-8")
+                # Checking password entered with the password in db
+                correct_password = bcrypt.checkpw(encoded_password, encoded_password_db)
+                
+                if not correct_password:
+                    return "Password is not matching with our record.", 401
+                
+                # Get current time
+                current_time = datetime.now()
+                
+                # Invalidate old tokens
+                token_query = "SELECT * FROM access_tokens where email = %s"
+                cursor.execute(token_query, (email,))
+                old_token = cursor.fetchone()
+                if old_token:
+                    # Make old_token mutable
+                    mutable_old_token = list(old_token)
+                    mutable_old_token[5] = current_time
+                    mutable_old_token[6] = current_time
+                    # Add expired token to expired token table
+                    query = (
+                        "INSERT INTO expired_access_tokens "
+                        "(jti, token, email, created_at, updated_at, expired_at) "
+                        "VALUES (%s, %s, %s, %s, %s, %s)"
+                    )
+                    
+                    data = (
+                        old_token[1],
+                        old_token[2],
+                        old_token[3],
+                        old_token[4],
+                        mutable_old_token[5],
+                        mutable_old_token[6]
+                    )
+                    
+                    cursor.execute(query, data)
+                    # Make sure data is committed to the database
+                    connection.commit()
+                    # Delete old token in access token table
+                    cursor.execute("DELETE FROM access_tokens WHERE email = %s", (email,))
+                    connection.commit()
+                    
+                # Create new token
+                secret_key = secrets.token_hex(32)
+                jti = uuid.uuid4().hex
+                created_at = current_time
+                updated_at = current_time
+                expired_at = current_time + timedelta(days=1)
+                
+                jwt_payload = {
+                    "jti": jti,
+                    "exp": expired_at,
+                    "email": email,
+                }
+                
+                token = jwt.encode(jwt_payload, secret_key, algorithm="HS256")
+                # Save token in access token table
+                query = (
+                    "INSERT INTO access_tokens "
+                    "(jti, token, email, created_at, updated_at, expired_at) "
+                    "VALUES (%s, %s, %s, %s, %s, %s)"
+                )
+                
+                new_data = (
+                    jti,
+                    token,
+                    email,
+                    created_at,
+                    updated_at,
+                    expired_at
+                )
+                
+                cursor.execute(query, new_data)
+                # Make sure data is committed to the database
+                connection.commit()
+                
+                return jsonify(status="success", token=token), 200
+                
+            except Exception as error:
+                self.logger.debug(error)
+                
+            finally:
+                if cursor is not None:
+                    cursor.close()
+                if connection is not None:
+                    connection.close()
+                    
+        @self.app.route("/api/logout", methods=["POST"])         
+        def logout_user():
+            connection = None
+            cursor = None
+            try:
+                if request.method != "POST":
+                    return "Method Not Allowed", 405
+                
+                headers = request.headers["Authorization"]
+                token = headers.split()[1]
+                if not token:
+                    return "Logout failed - User Unauthorized.", 401
+                
+                connection = self.database.db_connection()
+                cursor = connection.cursor()
+                find_query = "SELECT * FROM access_tokens where token = %s"
+                cursor.execute(find_query, (token,))
+                token_data = cursor.fetchone()
+                if not token_data:
+                    return "Forbidden - Token expired or not found.", 403
+                
+                # Make token mutable
+                mutable_token_data = list(token)
+                # Get current time to update field updated_at and expired_at
+                current_time = datetime.now()
+                mutable_token_data[5] = current_time
+                mutable_token_data[6] = current_time
+                
+                # Add expired token to expired token table
+                insert_query = (
+                    "INSERT INTO expired_access_tokens "
+                    "(jti, token, email, created_at, updated_at, expired_at) "
+                    "VALUES (%s, %s, %s, %s, %s, %s)"
+                )
+                
+                data = (
+                    token_data[1],
+                    token_data[2],
+                    token_data[3],
+                    token_data[4],
+                    mutable_token_data[5],
+                    mutable_token_data[6]
+                )
+                
+                cursor.execute(insert_query, data)
+                # Make sure data is committed to the database
+                connection.commit()
+                # Delete old token in access token table
+                cursor.execute("DELETE FROM access_tokens WHERE token = %s", (token,))
+                connection.commit()
+                
+                return "Logout successful.", 200
+                
+            
             except Exception as error:
                 self.logger.debug(error)
                 
