@@ -104,6 +104,28 @@ class Database:
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
             )
             
+            self.tables["access_tokens"] = (
+                "CREATE TABLE IF NOT EXISTS `access_tokens` ("
+                "`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,"
+                "`jti varchar(255) NOT NULL,"
+                "`token` varchar(255) NOT NULL,"
+                "`email` varchar(255) NOT NULL,"
+                "`created_at` timestamp NULL DEFAULT NULL,"
+                "`updated_at` timestamp NULL DEFAULT NULL"
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+            )
+            
+            self.tables["expired_access_tokens"] = (
+                "CREATE TABLE IF NOT EXISTS `expired_access_tokens` ("
+                "`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,"
+                "`jti varchar(255) NOT NULL,"
+                "`token` varchar(255) NOT NULL,"
+                "`email` varchar(255) NOT NULL,"
+                "`created_at` timestamp NULL DEFAULT NULL,"
+                "`updated_at` timestamp NULL DEFAULT NULL"
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+            )
+            
             # Create a cursor to execute SQL queries
             cursor = connection.cursor()
             for table_name in self.tables:
