@@ -1,4 +1,4 @@
-import { useState, useEffect, FC, ReactNode } from "react";
+import { useState, useEffect, FC, ReactNode, FormEvent } from "react";
 import { styled, Theme, CSSObject } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import MuiDrawer from "@mui/material/Drawer";
@@ -12,8 +12,10 @@ import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { mainListItems, secondaryListItems } from "./components/navItems";
-import { Grid, Paper } from "@mui/material";
+import { Grid } from "@mui/material";
 import { useRouter } from "next/navigation";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 
 const drawerWidth = 240;
 
@@ -84,6 +86,7 @@ interface MainLayoutProps {
 const MainLayout: FC<MainLayoutProps> = ({ children }) => {
   const [open, setClose] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -99,6 +102,39 @@ const MainLayout: FC<MainLayoutProps> = ({ children }) => {
   const getPageClickHandler = (page: string) => () => {
     handlePageClick(page);
   };
+
+  const handleIconClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleIconClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = async () => {
+
+    // Get Token in local storage
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      console.error("No token found.");
+      return;
+    }
+
+    const response = await fetch("http://127.0.0.1:5000/api/logout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (response.ok) {
+      router.push("/");
+    } else {
+      console.log("Error: ", response.text);
+    }
+  }
 
   return (
     <Box sx={{ display: "flex", backgroundColor: "#F6F8FB" }}>
@@ -124,9 +160,18 @@ const MainLayout: FC<MainLayoutProps> = ({ children }) => {
           >
             HazimNetto
           </Typography>
-          <IconButton color="inherit">
+          <IconButton color="inherit" onClick={handleIconClick}>
             <AccountCircleIcon />
           </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleIconClose}
+          >
+            <MenuItem onClick={handleLogout}>
+              Logout
+            </MenuItem>
+          </Menu>
         </Toolbar>
       </AppBar>
       <Drawer variant="permanent" open={open}>
@@ -151,7 +196,7 @@ const MainLayout: FC<MainLayoutProps> = ({ children }) => {
       >
         <Toolbar />
         <Grid container maxWidth="xl" spacing={3}>
-            {children}
+          {children}
         </Grid>
       </Box>
     </Box>

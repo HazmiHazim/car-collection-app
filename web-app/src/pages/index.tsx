@@ -50,7 +50,9 @@ export default function SignIn() {
     });
  
     if (response.ok) {
-      router.push('/dashboard')
+      const { token } = await response.json();
+      localStorage.setItem("token", token); // Save the token to local storage
+      router.push("/dashboard");
     } else {
       console.log("Error: ", response.text)
     }
